@@ -1,0 +1,38 @@
+# .gitignore for Flask and React
+
+# Python files and environment
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.pot
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Flask specific
+instance/
+*.sqlite3
+*.db
+*.sqlite
+
+# Flask cache and config files
+flask_session/
+*.log
+config.py
+.env
+.env.*
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+

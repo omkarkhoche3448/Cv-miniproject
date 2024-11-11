@@ -21,3 +21,62 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Node.js and React files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.*
+.pnp.js
+.vscode/
+.DS_Store
+
+# Build output
+build/
+dist/
+
+# React environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Webpack files
+.webpack/
+coverage/
+.idea/
+.history/
+
+# MacOS system files
+.DS_Store
+
+# VS Code configuration files
+.vscode/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Linting and formatting
+.eslintcache
+.prettierignore
+.prettiercache
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# IDE specific files (JetBrains, VSCode, etc.)
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.idea/
+.vscode/
+.history/
+
+# Miscellaneous
+*.bak
+
