@@ -1,12 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import axios from 'axios';
 
 const ObjectDetectionApp = () => {
   const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
   const [model, setModel] = useState('yolov5s');
   const [confidence, setConfidence] = useState(0.5);
   const [detections, setDetections] = useState([]);
+
+  const detectObjects = useCallback(async () => {
+    if (webcamRef.current && webcamRef.current.video.readyState === 4) {
+      const canvas = document.createElement('canvas');
+      canvas.width = webcamRef.current.video.width;
+      canvas.height = webcamRef.current.video.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(webcamRef.current.video, 0, 0, canvas.width, canvas.height);
+
+      const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+      const imageData = dataURL.split(',')[1];
+
+      try {
+        const response = await axios.post('http://localhost:5000/detect_objects', { image: imageData });
+        setDetections(response.data);
+        drawDetections(response.data);
+      } catch (error) {
+        console.error('Error detecting objects:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -14,25 +36,25 @@ const ObjectDetectionApp = () => {
     }, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [detectObjects]);
 
-  const detectObjects = async () => {
-    if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-      // Capture the video frame
-      const canvas = document.createElement('canvas');
-      canvas.width = webcamRef.current.video.width;
-      canvas.height = webcamRef.current.video.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(webcamRef.current.video, 0, 0, canvas.width, canvas.height);
+  const drawDetections = (detections) => {
+    const canvas = document.getElementById('output-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Convert the canvas to a data URL
-      const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-      const imageData = dataURL.split(',')[1];
-
-      // Send the image data to the backend for object detection
-      const response = await axios.post('/detect_objects', { image: imageData });
-      setDetections(response.data);
-    }
+    // Draw detections here
+    detections.boxes.forEach((box, i) => {
+      const [x, y, width, height] = box;
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, width, height);
+      ctx.fillStyle = '#00ff00';
+      ctx.fillText(
+        `Class ${detections.classIDs[i]} (${detections.confidences[i].toFixed(2)})`,
+        x, y - 5
+      );
+    });
   };
 
   return (
@@ -40,7 +62,7 @@ const ObjectDetectionApp = () => {
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-4xl">
         <h1 className="text-3xl font-bold mb-6">Real-Time Object Detection</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
+          <div className="relative">
             <Webcam
               ref={webcamRef}
               width={640}
@@ -48,7 +70,17 @@ const ObjectDetectionApp = () => {
               style={{ transform: 'scaleX(-1)' }}
               className="rounded-lg shadow-md"
             />
-            <canvas id="output-canvas" width={640} height={480} />
+            <canvas 
+              id="output-canvas" 
+              width={640} 
+              height={480}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                transform: 'scaleX(-1)'
+              }}
+            />
           </div>
           <div>
             <div className="mb-6">
@@ -62,7 +94,6 @@ const ObjectDetectionApp = () => {
                 onChange={(e) => setModel(e.target.value)}
               >
                 <option value="yolov5s">YOLOv5s</option>
-           
               </select>
             </div>
             <div>
